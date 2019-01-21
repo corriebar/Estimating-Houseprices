@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Estimating Berlin House Prices using rstanarm</title>
+    <meta charset="utf-8">
+    <meta name="author" content="Corrie Bartelheimer     Europace" />
+    <meta name="date" content="2019-01-24" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Estimating Berlin House Prices using rstanarm
+### Corrie Bartelheimer <br /> <br /> Europace
+### January 24, 2019
+
+---
+
+
+
+
+
+# What does Europace do?
+--
+&lt;img src="images/Europace.png" width="1987" /&gt;
+---
+
+## Estimating House Prices
+What are good predictors?
+--
+
+- Size
+
+--
+.pull-right[
+&lt;img src="images/einzimmerwohnung.jpeg" width="1264" /&gt;
+]
+--
+
+- Location, location, location
+
+---
+## How to include ZIP codes in your model?
+--
+
+
+- Encoding, e.g. One-Hot-Encoding
+
+--
+
+- Categorical embedding
+
+--
+
+- Omit
+
+--
+
+- One model per ZIP code
+
+--
+
+- **Hierarchical model**
+
+---
+## Hierarchical Model
+
+In short:
+
+A compromise between **one model per ZIP code** (no pooling) and **ignoring ZIP code information** (complete pooling).
+
+A hierarchical model does **partial pooling**
+---
+
+## The model
+
+
+.large[
+`$$\begin{align*}
+\text{Price} &amp;\sim \text{Normal}(\mu, \sigma) \\
+\\
+\\
+\mu &amp;= \alpha_{[ZIP]} + \beta_{[ZIP]} \text{area} 
+\end{align*}$$`
+]
+---
+## How to compute it
+--
+
+&gt; RStanArm allows users to specify models via the customary R commands, where models are specified with formula syntax.
+
+--
+
+```r
+library(rstanarm)
+options(mc.cores = parallel::detectCores())
+
+mod &lt;-   stan_lmer( price.s ~  area + (1 + area | plz)  ,
+          data=df.model)
+```
+--
+A simpler model for comparison:
+
+```r
+mod_simple &lt;- stan_glm( price.s ~  area   ,
+          data=df.model)
+```
+
+`price.s` is the price in 100,000s.
+---
+## What about priors?
+
+RStanArm uses by default **weakly regularized** priors
+--
+
+```r
+prior_summary(mod)
+```
+
+```
+Priors for model 'mod' 
+------
+Intercept (after predictors centered)
+ ~ normal(location = 0, scale = 10)
+     **adjusted scale = 21.58
+
+Coefficients
+ ~ normal(location = 0, scale = 2.5)
+     **adjusted scale = 5.40
+
+Auxiliary (sigma)
+ ~ exponential(rate = 1)
+     **adjusted scale = 2.16 (adjusted rate = 1/adjusted scale)
+
+Covariance
+ ~ decov(reg. = 1, conc. = 1, shape = 1, scale = 1)
+------
+See help('prior_summary.stanreg') for more details
+```
+---
+## What about priors?
+
+### Note on centering
+RStanArm automatically centers predictor variables internally but reports estimates corresponding to a parameterization without centered predictors. 
+
+To avoid auto-centering, you can omit the intercept and add it manually as a column of ones as predictor:
+
+```r
+mod_uncentered &lt;- df.model %&gt;%
+  mutate(intc = 1) %&gt;%
+    stan_lmer( price ~ area + intc + (intc + area | plz) -1 ,
+               data=.)
+```
+The prior for the intercept is then defined by the priors for the predictor.
+---
+## What about priors?
+
+We can of course also fit our own priors:
+
+
+```r
+mod &lt;-   stan_lmer( price.s ~  area.s + 
+                             (1 + area.s | plz)  ,
+                data=df.model,
+                prior_intercept=normal(location=3, scale=3, 
+                                      autoscale = FALSE),
+                prior=normal(location=0, scale=2.5, 
+                                      autoscale=FALSE)) 
+```
+
+---
+
+
+
+
+## Assessing convergence
+
+
+```r
+launch_shinystan(mod)
+```
+--
+&lt;img src="images/shinystan.png" width="2721" /&gt;
+
+---
+
+## Assessing convergence
+The package `bayesplot` can be used to get the same plots as in shinystan and more:
+.pull-left[
+
+
+
+```r
+library(bayesplot)
+rhat(mod, 
+     regex_pars=in_ring) %&gt;% 
+  mcmc_rhat() + 
+  labs(title=t,
+      subtitle=st)
+```
+]
+.pull-right[
+![](Estimating-Houseprices-with-rstanarm_files/figure-html/plot-label-rhat-1.png)
+]
+---
+
+## Model comparison
+--
+
+```r
+library(loo)
+l_mod &lt;- loo(mod)
+l_simple &lt;- loo(mod_simple)
+
+compare_models(l_mod, l_simple)
+```
+
+```
+
+Model comparison: 
+(negative 'elpd_diff' favors 1st model, positive favors 2nd) 
+
+elpd_diff        se 
+  -1907.5     135.5 
+```
+
+---
+
+## Analyzing the results
+Extract fitted draws
+
+```r
+mitte &lt;- c("10117", "10119", "10178", "10179")
+library(tidybayes)
+library(modelr)
+df.model %&gt;%
+  filter(plz %in% mitte) %&gt;%
+  group_by(plz) %&gt;%
+* data_grid(area.s = seq_range(area.s, n=100)) %&gt;%
+* add_fitted_draws(mod, n=50) %&gt;%
+  head()
+```
+
+```
+# A tibble: 6 x 7
+# Groups:   plz, area.s, .row [1]
+  plz   area.s  .row .chain .iteration .draw .value
+  &lt;chr&gt;  &lt;dbl&gt; &lt;int&gt;  &lt;int&gt;      &lt;int&gt; &lt;int&gt;  &lt;dbl&gt;
+1 10117  -1.26     1     NA         NA    53   1.90
+2 10117  -1.26     1     NA         NA   106   2.21
+3 10117  -1.26     1     NA         NA   298   1.77
+4 10117  -1.26     1     NA         NA   378   1.39
+5 10117  -1.26     1     NA         NA   467   2.18
+6 10117  -1.26     1     NA         NA   500   1.67
+```
+---
+
+## Analyzing the results
+
+.center[ 
+![](Estimating-Houseprices-with-rstanarm_files/figure-html/plot-mitte-1.png)
+]
+
+---
+## Analyzing the results
+Extract posterior predictions
+
+```r
+df.model %&gt;%
+  filter(plz %in% mitte) %&gt;%
+  group_by(plz) %&gt;%
+  data_grid(area.s = seq_range(area.s, n=100) ) %&gt;%
+* add_predicted_draws(mod, n=50) %&gt;%
+  head()
+```
+
+```
+# A tibble: 6 x 7
+# Groups:   plz, area.s, .row [1]
+  plz   area.s  .row .chain .iteration .draw .prediction
+  &lt;chr&gt;  &lt;dbl&gt; &lt;int&gt;  &lt;int&gt;      &lt;int&gt; &lt;int&gt;       &lt;dbl&gt;
+1 10117  -1.26     1     NA         NA     1        2.55
+2 10117  -1.26     1     NA         NA     2        1.22
+3 10117  -1.26     1     NA         NA     3        2.67
+4 10117  -1.26     1     NA         NA     4        1.11
+5 10117  -1.26     1     NA         NA     5        2.46
+6 10117  -1.26     1     NA         NA     6       -1.03
+```
+---
+## Analyzing the results
+
+.center[ 
+![](Estimating-Houseprices-with-rstanarm_files/figure-html/plot-mitte-post-1.png)
+]
+
+---
+
+## Predicting
+We can predict using the RstanArm function `posterior_predict()` 
+
+```r
+nd &lt;- data.frame(area.s=standardize(101), plz="10407") 
+post &lt;- posterior_predict(mod, newdata=nd) 
+hist(post, main="Posterior", xlab="Price in 100,000s")
+```
+.center[ 
+![](Estimating-Houseprices-with-rstanarm_files/figure-html/post-hist-1.png)
+]
+---
+
+## Predicting
+Or using `tidybayes` we can get predictions in a tidy format:
+
+```r
+post &lt;- data.frame() %&gt;%
+  data_grid(area.s=standardize(101),
+            plz = "10407") %&gt;%
+  add_predicted_draws(mod) 
+```
+
+.center[ 
+![](Estimating-Houseprices-with-rstanarm_files/figure-html/post-dot-1.png)
+]
+---
+## What is the probability
+We can use the posterior to answer questions such as
+
+&gt;  "What is the probability that a house in 10407 (Prenzlauer Berg) of 101sqm has a price less than 300,000€?"
+
+
+```r
+mean( post$.prediction &lt; 3 )
+```
+
+```
+[1] 0.06225
+```
+--
+
+.center[ 
+![](Estimating-Houseprices-with-rstanarm_files/figure-html/post-dot-prob-1.png)
+]
+
+---
+## Pretty Visualizations
+
+
+.center[ 
+![](Estimating-Houseprices-with-rstanarm_files/figure-html/plot-intercept-1.png)
+]
+---
+## Pretty Visualizations
+
+.center[ 
+![](Estimating-Houseprices-with-rstanarm_files/figure-html/ring-intercept-1.png)
+]
+---
+## Pretty Visualizations
+
+.center[ 
+![](Estimating-Houseprices-with-rstanarm_files/figure-html/plot-slope-1.png)
+]
+---
+## Pretty Visualizations
+
+.center[ 
+![](Estimating-Houseprices-with-rstanarm_files/figure-html/ring-slope-1.png)
+]
+---
+
+## Things to improve
+
+--
+- Many outliers in the data
+
+--
+
+  - Price for large houses difficult to predict
+  
+--
+
+- Important predictors still missing
+
+--
+
+  - Object type (e.g. house or flat)
+  
+--
+
+  - Time
+  
+--
+
+- No information about similarity of neighborhoods included
+
+  - Spatial modelling, e.g. ICAR model
+
+---
+## Questions?
+
+Slides and Code can be found []()
+
+
+
+
+Twitter: @corrieaar
+
+**Thank you!**
+    </textarea>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightLines": true,
+"highlightStype": "github",
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function() {
+  var d = document, s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})();</script>
+
+<script>
+(function() {
+  var i, text, code, codes = document.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+})();
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

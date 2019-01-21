@@ -1,0 +1,11 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.rda
+
+# ignore Shapefile data
+*.dbf
+*.prj
+*.shp
+*.shx
