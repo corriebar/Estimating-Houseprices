@@ -31,7 +31,7 @@ df <- df %>%
 df.m  <- df %>%
   filter(grundstuecksgroesse < 5e4 &
            gesamtwohnflaeche < 500 &
-           gesamt_kaufpreis < 3e6) 
+           gesamt_kaufpreis < 3e6  )
 
 
 #########################################################
@@ -41,7 +41,6 @@ df.model <- df.m %>%
   select(gesamtwohnflaeche,  gesamt_kaufpreis, plz) %>%
   rename(area = gesamtwohnflaeche, price = gesamt_kaufpreis) %>%
   mutate(area.s = as.numeric(scale(area, scale=T)),
-         area.c = area - mean(area),
          price.s = price / 100000) %>%
   as.tibble
 
@@ -49,29 +48,33 @@ df.model <- df.m %>%
 
 ##########################################################################################################
 ### run the models
-mod_base <-   stan_lmer( price.s ~  area.c + 
-                           (1 + area.c | plz)  ,
+mod_base <-   stan_lmer( price.s ~  area.s + 
+                           (1 + area.s | plz)  ,
                          data=df.model,
                          prior_intercept=normal(location=3, scale=3, autoscale = F),
                          prior=normal(location=0, scale=2.5, autoscale=F)) 
 
-mod_flat <-   stan_lmer( price.s ~  area.c + 
-                           (1 + area.c | plz)  ,
-                         data=df.model,
-                         prior_intercept=NULL,
-                         prior=NULL) 
 
-mod_base_default_prior <-   stan_lmer( price.s ~  area + (1 + area | plz)  ,
+mod_base_default_prior <-   stan_lmer( price.s ~  area.s + (1 + area.s | plz)  ,
                     data=df.model)
 
-mod_simple <- stan_glm( price.s ~  area.c   ,
+mod_simple <- stan_glm( price.s ~  area.s   ,
                         data=df.model)
+
+weakly_informed_prior_fit  <- stan_glm( price.s ~ area.s,
+                                        prior_PD = TRUE,
+                                        data=df.model)
+
+informed_prior_fit <- stan_glm( price.s ~ area.s,
+                                prior_PD = TRUE,
+                                prior_intercept = normal(location=3, scale=3, autoscale=F),
+                                prior=normal(location=0, scale=2.5, autoscale=F),
+                                data=df.model)
 
 
 ######################################
 ## compute loo values
 
-l_flat <- loo(mod_flat)
 l_simple <- loo(mod_simple)
 l_base <- loo(mod_base)
 
@@ -89,9 +92,9 @@ k_base <- kfold(mod_base, K=10, folds=folds_plz)
 ## save everything
 save(mod_base_default_prior, file="data/mod_base_default_prior.rda")
 save(mod_simple, file="data/mod_simple.rda")
+save(weakly_informed_prior_fit, file="data/weakly_informed_prior.rda")
+save(informed_prior_fit, file="data/informed_prior.rda")
 save(mod_base, file="data/mod_base.rda")
-save(mod_flat, file="data/mod_flat.rda")
-save(l_flat, file="data/loo_flat.rda")
 save(l_simple, file="data/loo_simple.rda")
 save(l_base, file="data/loo_base.rda")
 save(k_simple, file="data/kfold_simple.rda")
