@@ -561,7 +561,7 @@ plot_prob <- ring.plz.map +
   geom_polygon(data=ring.df %>% filter(!is.na(m)),
                aes(x=long, y=lat,
                    group=group, fill=m.bin),
-               color="black", size=0.5,
+               color="black", size=0.3,
                show.legend = T) +
   scale_color_brewer(type="div", palette="RdYlGn", aesthetics = "fill",
                     name="", drop=F) +
@@ -586,7 +586,7 @@ df.model %>%
   geom_line(aes(y=.value, group=.draw), 
             alpha=.1, show.legend=F) +
   geom_point(data=df.model %>% filter(plz == "12047"), 
-             col="black", size=0.8) +
+             col="black", size=1) +
   scale_x_continuous(breaks = standardize(seq(50, 500, by=50) ),
                      labels= seq(50, 500, by=50)) +
   labs(y="Price", x="Area", title="Prices in 12047 (Neukölln)")  +
@@ -711,8 +711,8 @@ mod %>%
 - Questions?
 
 
-- Slides and Code can be found here: 
+- Slides and Code on `r icon::fa("github")`: 
 [https://github.com/corriebar/Estimating-Houseprices](https://github.com/corriebar/Estimating-Houseprices)
 
 
-- Twitter: [@corrieaar](https://twitter.com/corrieaar)
+- `r icon::fa("twitter")` [@corrieaar](https://twitter.com/corrieaar)

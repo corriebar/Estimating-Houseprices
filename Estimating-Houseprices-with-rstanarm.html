@@ -7,6 +7,7 @@
     <meta name="date" content="2019-01-24" />
     <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
     <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
+    <link href="libs/font-awesome-5.3.1/css/fontawesome-all.min.css" rel="stylesheet" />
   </head>
   <body>
     <textarea id="source">
@@ -250,12 +251,12 @@ df.model %&gt;%
 # Groups:   plz, area.s, .row [1]
   plz   area.s  .row .chain .iteration .draw .value
   &lt;chr&gt;  &lt;dbl&gt; &lt;int&gt;  &lt;int&gt;      &lt;int&gt; &lt;int&gt;  &lt;dbl&gt;
-1 10119  -1.16     1     NA         NA    64   1.37
-2 10119  -1.16     1     NA         NA   213   1.23
-3 10119  -1.16     1     NA         NA   215   1.36
-4 10119  -1.16     1     NA         NA   314   1.54
-5 10119  -1.16     1     NA         NA   316   1.69
-6 10119  -1.16     1     NA         NA   339   1.73
+1 10119  -1.16     1     NA         NA    67   1.39
+2 10119  -1.16     1     NA         NA   118   1.29
+3 10119  -1.16     1     NA         NA   153   1.14
+4 10119  -1.16     1     NA         NA   184   1.42
+5 10119  -1.16     1     NA         NA   205   1.73
+6 10119  -1.16     1     NA         NA   272   1.19
 ```
 ---
 
@@ -283,12 +284,12 @@ df.model %&gt;%
 # Groups:   plz, area.s, .row [1]
   plz   area.s  .row .chain .iteration .draw .prediction
   &lt;chr&gt;  &lt;dbl&gt; &lt;int&gt;  &lt;int&gt;      &lt;int&gt; &lt;int&gt;       &lt;dbl&gt;
-1 10119  -1.16     1     NA         NA     1      3.54  
-2 10119  -1.16     1     NA         NA     2     -0.0101
-3 10119  -1.16     1     NA         NA     3     -0.0592
-4 10119  -1.16     1     NA         NA     4      1.45  
-5 10119  -1.16     1     NA         NA     5     -0.294 
-6 10119  -1.16     1     NA         NA     6      2.66  
+1 10119  -1.16     1     NA         NA     1       1.67 
+2 10119  -1.16     1     NA         NA     2       1.03 
+3 10119  -1.16     1     NA         NA     3      -0.249
+4 10119  -1.16     1     NA         NA     4       0.594
+5 10119  -1.16     1     NA         NA     5       1.62 
+6 10119  -1.16     1     NA         NA     6       1.45 
 ```
 ---
 ## Analyzing the results &amp; Prediction
@@ -323,7 +324,7 @@ mean( post &lt; 3 )
 ```
 
 ```
-[1] 0.066
+[1] 0.06775
 ```
 --
 
@@ -443,11 +444,11 @@ Posterior Probability that a house of 101sqm has a price less than 300,000€
 - Questions?
 
 
-- Slides and Code can be found here: 
+- Slides and Code on <i class="fab  fa-github "></i>: 
 [https://github.com/corriebar/Estimating-Houseprices](https://github.com/corriebar/Estimating-Houseprices)
 
 
-- Twitter: [@corrieaar](https://twitter.com/corrieaar)
+- <i class="fab  fa-twitter "></i> [@corrieaar](https://twitter.com/corrieaar)
     </textarea>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
 <script>var slideshow = remark.create({
