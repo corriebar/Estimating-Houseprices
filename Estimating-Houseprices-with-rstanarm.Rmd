@@ -1,7 +1,7 @@
 ---
 title: "Estimating Berlin House Prices using rstanarm"
 author: "Corrie Bartelheimer <br /> <br /> Europace"
-date: "January 24, 2019"
+date: "April 17, 2019"
 output: 
   xaringan::moon_reader:
     lib_dir: libs
@@ -17,12 +17,16 @@ knitr::opts_chunk$set(echo = TRUE, comment=NA)
 ```{r, echo=F, results='hide', message=F, warning=F}
 library(rstanarm)
 library(tidyverse)
+library(RColorBrewer)    # nice colors
+library(modelr)
+library(tidybayes)
 load("data/mod_base_default_prior.rda")
 load("data/mod_base.rda")
 load("data/mod_simple.rda")
 load("data/df_m.rda")
 load("data/weakly_informed_prior.rda")
 load("data/informed_prior.rda")
+ggplot <- function(...) ggplot2::ggplot(...) + scale_color_brewer(palette="Set1") +scale_fill_brewer(palette="Set1")
 
 df.model <- df.m %>% 
   select(gesamtwohnflaeche,  gesamt_kaufpreis, plz) %>%
@@ -145,7 +149,7 @@ mod_simple <- stan_glm( price.s ~  area.s   ,
           data=df.model)
 ```
 
-`price.s` is the price in 100,000s, `area.s` is the standardized living area.
+`price.s` is the price in 100,000€s, `area.s` is the standardized living area.
 ---
 ## What about priors?
 
@@ -174,6 +178,37 @@ mcmc_hist(as.matrix(weakly_informed_prior_fit)) +
 ![](`r knitr::fig_chunk("prior-plot-weakly", "png")`)
 ]
 ---
+## What about priors?
+
+```{r, prior-line-weakly, warning=F, message=F, echo=F, fig.show='hide', fig.width=10, fig.height=7, dpi=150}
+df.model %>%
+  data_grid(area.s = seq(from=-2, to=2, length.out=100)) %>%
+  add_fitted_draws(weakly_informed_prior_fit, n=100) %>%
+  ggplot(aes(x=area.s, y=price.s))+
+  geom_line(aes(y=.value, group=.draw), 
+            alpha=.4, show.legend=F) +
+  geom_segment(aes(y = 0,
+                   yend=0,
+                   x=-2,
+                   xend=2) , col="#E41A1C" , size=1.5)  +
+    geom_segment(aes(y = 16,
+                   yend=16,
+                   x=-2,
+                   xend=2) , col="#377EB8" , size=1.5) +
+  scale_x_continuous(breaks = standardize(c(50, 100, 200) ),
+                     labels= c(50, 100, 200), 
+                     limits = c(-2, 2)) +
+  labs(y="Price (in 100,000s)", x="Area", title="Weakly regularizing prior (default)") +
+  coord_cartesian(xlim=c(-2,2), clip = "off") +
+  theme(plot.margin = unit(c(1,20,1,1), "mm")) +
+  bigger_text +
+  cowplot::draw_label(   x=2.14, y=0, label="0€", size=12,  col="#E41A1C" ) +
+  cowplot::draw_label(   x=2.3, y=16, label="Penthouse\nin Munich", size=12,  col="#377EB8") 
+```
+.center[
+![](`r knitr::fig_chunk("prior-line-weakly", "png")`)
+]
+---
 
 ## What about priors?
 
@@ -184,9 +219,9 @@ mod <- mod_base
 ```{r, eval=F}
 mod <- stan_lmer( price.s ~  area.s + (1 + area.s | plz)  ,
                 data=df.model,
-                prior_intercept=normal(location=3, scale=3, 
+                prior_intercept=normal(location=3, scale=2.5, 
                                       autoscale = FALSE),
-                prior=normal(location=0, scale=2.5, 
+                prior=normal(location=1, scale=1, 
                                       autoscale=FALSE)) 
 ```
 --
@@ -197,7 +232,37 @@ mcmc_hist(as.matrix(informed_prior_fit)) +
 .center[
 ![](`r knitr::fig_chunk("prior-plot-informed", "png")`)
 ]
+---
 
+## What about priors?
+```{r, prior-line-informed, warning=F, message=F, echo=F, fig.show='hide', fig.width=10, fig.height=7, dpi=150}
+df.model %>%
+  data_grid(area.s = seq(from=-2, to=2, length.out=100)) %>%
+  add_fitted_draws(informed_prior_fit, n=100) %>%
+  ggplot(aes(x=area.s, y=price.s))+
+  geom_line(aes(y=.value, group=.draw), 
+            alpha=.4, show.legend=F) +
+  scale_x_continuous(breaks = standardize(c(50, 100, 200) ),
+                     labels= c(50, 100, 200), 
+                     limits = c(-2, 2)) +
+   geom_segment(aes(y = 0,
+                   yend=0,
+                   x=-2,
+                   xend=2) , col="#E41A1C", size=1.5 )  +
+    geom_segment(aes(y = 16,
+                   yend=16,
+                   x=-2,
+                   xend=2) , col="#377EB8", size=1.5 ) +
+  labs(y="Price (in 100,000s)", x="Area", title="Informed prior") +
+  coord_cartesian(xlim=c(-2,2), clip = "off") +
+  theme(plot.margin = unit(c(1,20,1,1), "mm")) +
+  bigger_text +
+  cowplot::draw_label(   x=2.14, y=0, label="0€", size=12,  col="#E41A1C" ) +
+  cowplot::draw_label(   x=2.3, y=16, label="Penthouse\nin Munich", size=12,  col="#377EB8") 
+```
+.center[
+![](`r knitr::fig_chunk("prior-line-informed", "png")`)
+]
 ---
 ## Assessing convergence
 
@@ -255,7 +320,7 @@ compare_models(l_base, l_simple)
 
 Extract fitted draws
 ```{r, message=F, warning=F, fig.height=8}
-mitte <- c("10119", "10178", "10179", "10787")
+mitte <- c("10119", "10178", "10179", "10783")
 library(tidybayes)
 library(modelr)
 df.model %>%
@@ -318,9 +383,6 @@ df.model %>%
   scale_x_continuous(breaks = standardize(c(50, 100, 200, 300) ),
                      labels= c(50, 100, 200, 300), 
                      limits = c(-2, 4)) +
-  #scale_y_continuous(labels=function(x) x*100) +
-  scale_fill_brewer(palette = "Set2") +
-  scale_color_brewer(palette = "Dark2") +
   labs(y="Price", x="Area", main="Prices in Mitte") +
   theme(panel.spacing=unit(3, "lines")) + bigger_text
 ```
@@ -387,7 +449,6 @@ if (!require(maptools)) install.packages("maptools")
 if (!require(mapproj)) install.packages("mapproj")
 
 library(rgdal)           # for working with shapefiles
-library(RColorBrewer)    # nice colors
 # Shapefiles downloaded from here: 
 # https://www.suche-postleitzahl.org/downloads
 bezirke.spdf <- readOGR('data/plz-gebiete.shp/plz-gebiete.shp')
@@ -546,7 +607,7 @@ ring_slope +
 ]
 ---
 Posterior Probability that a house of 101sqm has a price less than 300,000€
-```{r, ring-prob, fig.show="hide", echo=F, fig.height=6, fig.width=8, dpi=280}
+```{r, ring-prob, fig.show="hide", echo=F, fig.height=6, fig.width=8, dpi=280, message=F, warning=F}
 pred <- df.model %>% 
   group_by(plz) %>% 
   data_grid(area.s=standardize(101)) %>% 
@@ -712,6 +773,9 @@ mod %>%
 
 - RStanArm and co make Bayesian modelling very accessible
 
+--
+  - For more complex models, use RStan or brms
+
 ---
 ## Thank you!
 
@@ -719,7 +783,8 @@ mod %>%
 
 
 - Slides and Code on `r icon::fa("github")`: 
-[https://github.com/corriebar/Estimating-Houseprices](https://github.com/corriebar/Estimating-Houseprices)
+
+  [https://github.com/corriebar/Estimating-Houseprices](https://github.com/corriebar/Estimating-Houseprices)
 
 
 - `r icon::fa("twitter")` [@corrieaar](https://twitter.com/corrieaar)

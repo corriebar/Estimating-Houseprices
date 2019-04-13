@@ -67,8 +67,8 @@ weakly_informed_prior_fit  <- stan_glm( price.s ~ area.s,
 
 informed_prior_fit <- stan_glm( price.s ~ area.s,
                                 prior_PD = TRUE,
-                                prior_intercept = normal(location=3, scale=3, autoscale=F),
-                                prior=normal(location=0, scale=2.5, autoscale=F),
+                                prior_intercept = normal(location=3, scale=2.5, autoscale=F),
+                                prior=normal(location=1, scale=1, autoscale=F),
                                 data=df.model)
 
 
