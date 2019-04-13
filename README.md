@@ -1,6 +1,6 @@
 # Estimating Houseprices with RStanArm
 
-This repo contains my slides and necessary code.
+This repo contains my [slides](https://corriebar.github.io/Estimating-Houseprices/Estimating-Houseprices-with-rstanarm.html#1) and necessary code.
 
 The results are based on data by Europace and were also published [here](https://tech.europace.de/hauspreise-in-berlin/) (in German).
 
