@@ -29,7 +29,7 @@ df.model <- df.m %>%
   rename(area = gesamtwohnflaeche, price = gesamt_kaufpreis) %>%
   mutate(area.s = as.numeric(scale(area, scale=T)),
          price.s = price / 100000) %>%
-  as.tibble
+  as_tibble
 
 mod <- mod_base_default_prior
 
@@ -379,6 +379,13 @@ quants %>%
 ---
 ## Pretty Visualizations
 ```{r, echo=FALSE, results='hide', message=F, warning=F}
+if (!require(rgeos))  {
+  install.packages("rgeos", type="source")
+  install.packages("rgdal", type="source")
+}
+if (!require(maptools)) install.packages("maptools")
+if (!require(mapproj)) install.packages("mapproj")
+
 library(rgdal)           # for working with shapefiles
 library(RColorBrewer)    # nice colors
 # Shapefiles downloaded from here: 
@@ -403,7 +410,7 @@ berlin.df <- bezirke.df %>%
 
 # Mittelpunkte der PLZ Bezirke für das spätere Label
 centroids <- aggregate(cbind(long, lat) ~ plz, data=berlin.df, FUN=mean) %>%
-  filter(plz %in%  c("10179", "10407"))
+  filter(plz %in%  c("10179", "10407", "10783"))
 
 
 berlin.plz.map <- ggplot(data=berlin.df,
@@ -458,7 +465,7 @@ plot_intercept <- berlin.plz.map +
   geom_polygon(data=berlin.df.cf %>% filter(!is.na(intercept.bin)),
                aes(x=long, y=lat,
                    group=group, fill=intercept.bin),
-               color="black", size=0.3,
+               color="white", size=0.2,
                show.legend = T) +
   scale_color_brewer(type="seq", palette="YlOrRd", aesthetics = "fill",
                      name="Intercept\nin 000s", drop=F)  +
@@ -469,7 +476,7 @@ ring_intercept <- ring.plz.map +
   geom_polygon(data=ring.df %>% filter(!is.na(intercept.bin)),
                aes(x=long, y=lat,
                    group=group, fill=intercept.bin),
-               color="black", size=0.3,
+               color="white", size=0.2,
                show.legend = T) +
   scale_color_brewer(type="seq", palette="YlOrRd", aesthetics = "fill",
                      name="Intercept\nin 000s", drop=F) + 
@@ -480,7 +487,7 @@ plot_slope<- berlin.plz.map +
   geom_polygon(data=berlin.df.cf %>% filter(!is.na(area.bin)),
                aes(x=long, y=lat,
                    group=group, fill=area.bin),  
-               color="black", size=0.3,
+               color="white", size=0.2,
                 show.legend = T) +
    scale_color_brewer(type="seq", palette="YlOrRd", aesthetics = "fill",
                      name="Slope\nin € per sqm", drop=F) +
@@ -490,7 +497,7 @@ ring_slope<- ring.plz.map +
   geom_polygon(data=ring.df %>% filter(!is.na(area.bin)),
                aes(x=long, y=lat,
                    group=group, fill=area.bin),  
-               color="black", size=0.3,
+               color="white", size=0.2,
                 show.legend = T) +
     scale_color_brewer(type="seq", palette="YlOrRd", aesthetics = "fill",
                      name="Slope\nin € per sqm", drop=F) +
@@ -561,7 +568,7 @@ plot_prob <- ring.plz.map +
   geom_polygon(data=ring.df %>% filter(!is.na(m)),
                aes(x=long, y=lat,
                    group=group, fill=m.bin),
-               color="black", size=0.3,
+               color="white", size=0.2,
                show.legend = T) +
   scale_color_brewer(type="div", palette="RdYlGn", aesthetics = "fill",
                     name="", drop=F) +
