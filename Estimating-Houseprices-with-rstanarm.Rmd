@@ -191,8 +191,8 @@ df.model %>%
                    yend=0,
                    x=-2,
                    xend=2) , col="#E41A1C" , size=1.5)  +
-    geom_segment(aes(y = 16,
-                   yend=16,
+    geom_segment(aes(y = 85,
+                   yend=85,
                    x=-2,
                    xend=2) , col="#377EB8" , size=1.5) +
   scale_x_continuous(breaks = standardize(c(50, 100, 200) ),
@@ -203,7 +203,7 @@ df.model %>%
   theme(plot.margin = unit(c(1,20,1,1), "mm")) +
   bigger_text +
   cowplot::draw_label(   x=2.14, y=0, label="0€", size=12,  col="#E41A1C" ) +
-  cowplot::draw_label(   x=2.3, y=16, label="Penthouse\nin Munich", size=12,  col="#377EB8") 
+  cowplot::draw_label(   x=2.32, y=85, label="Most expensive\nflat in Berlin", size=12,  col="#377EB8") 
 ```
 .center[
 ![](`r knitr::fig_chunk("prior-line-weakly", "png")`)
@@ -249,16 +249,16 @@ df.model %>%
                    yend=0,
                    x=-2,
                    xend=2) , col="#E41A1C", size=1.5 )  +
-    geom_segment(aes(y = 16,
-                   yend=16,
-                   x=-2,
-                   xend=2) , col="#377EB8", size=1.5 ) +
+   # geom_segment(aes(y = 16,
+  #                 yend=16,
+   #                x=-2,
+    #               xend=2) , col="#377EB8", size=1.5 ) +
   labs(y="Price (in 100,000s)", x="Area", title="Informed prior") +
   coord_cartesian(xlim=c(-2,2), clip = "off") +
   theme(plot.margin = unit(c(1,20,1,1), "mm")) +
   bigger_text +
-  cowplot::draw_label(   x=2.14, y=0, label="0€", size=12,  col="#E41A1C" ) +
-  cowplot::draw_label(   x=2.3, y=16, label="Penthouse\nin Munich", size=12,  col="#377EB8") 
+  cowplot::draw_label(   x=2.14, y=0, label="0€", size=12,  col="#E41A1C" ) 
+  # cowplot::draw_label(   x=2.3, y=16, label="Penthouse\nin Munich", size=12,  col="#377EB8") 
 ```
 .center[
 ![](`r knitr::fig_chunk("prior-line-informed", "png")`)
@@ -271,31 +271,6 @@ launch_shinystan(mod)
 ```
 
 
----
-
-## Assessing convergence
-The package `bayesplot` can be used to get the same plots as in shinystan and more:
-.pull-left[
-```{r, echo=F}
-in_ring <- paste("\\(Intercept\\) plz:", 
-                      umweltzone$plz, collapse="|", sep="")
-t <- "Rhat for intercept parameter"
-st <- "Only PLZ inside the S-Bahn Ring"
-```
-
-```{r, plot-label-rhat,  fig.show="hide", warning=F, message=F, fig.height=6, fig.width=5}
-library(bayesplot)
-rhat(mod, 
-     regex_pars=in_ring) %>% 
-  mcmc_rhat() + 
-  labs(title=t,
-      subtitle=st) +
-  bigger_text
-```
-]
-.pull-right[
-![](`r knitr::fig_chunk("plot-label-rhat", "png")`)
-]
 ---
 
 ## Model comparison
@@ -572,38 +547,12 @@ plot_intercept + bigger_text_wo_axis
 ![](`r knitr::fig_chunk("plot-intercept", "png")`)
 ]
 ---
-Price estimate for an average house (104sqm)
-
-Inside the ring
-```{r, ring-intercept, fig.show="hide", fig.height=6, fig.width=8, echo=F, dpi=300}
-ring_intercept +
-  geom_text(data=centroids, mapping=aes(x=long, y=lat, label=plz, group=plz), 
-            col='black', size=3) +
-  labs(title="", subtitle="") + bigger_text_wo_axis
-```
-.center[ 
-![](`r knitr::fig_chunk("ring-intercept", "png")`)
-]
----
 Slope - Estimate for the price per sqm
 ```{r, plot-slope, fig.show="hide", echo=F, fig.height=6, fig.width=8, dpi=300}
 plot_slope + labs(title="") + bigger_text_wo_axis
 ```
 .center[ 
 ![](`r knitr::fig_chunk("plot-slope", "png")`)
-]
----
-Slope - Estimate for the price per sqm
-
-Inside the ring
-```{r, ring-slope, fig.show="hide", echo=F, fig.height=6, fig.width=8, dpi=300}
-ring_slope +
-  geom_text(data=centroids, mapping=aes(x=long, y=lat, label=plz, group=plz), 
-            col='black', size=3) +
-  labs(title="") + bigger_text_wo_axis
-```
-.center[ 
-![](`r knitr::fig_chunk("ring-slope", "png")`)
 ]
 ---
 Posterior Probability that a house of 101sqm has a price less than 300,000€

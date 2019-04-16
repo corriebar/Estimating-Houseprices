@@ -12,7 +12,7 @@ set.seed(2405)
 df <- df %>% 
   filter(gesamtwohnflaeche > 0) %>%
   mutate_at(c("herstellung", "grundstueckskaufpreis", 
-              "kaufpreis", "modernisierung"), funs(replace(., is.na(.), 0))) %>%
+              "kaufpreis", "modernisierung"), list(~replace(., is.na(.), 0))) %>%
   mutate(gesamt_kaufpreis = herstellung + grundstueckskaufpreis + kaufpreis + modernisierung,
          qm_preis =  gesamt_kaufpreis / gesamtwohnflaeche)
 
@@ -42,7 +42,7 @@ df.model <- df.m %>%
   rename(area = gesamtwohnflaeche, price = gesamt_kaufpreis) %>%
   mutate(area.s = as.numeric(scale(area, scale=T)),
          price.s = price / 100000) %>%
-  as.tibble
+  as_tibble
 
 
 
