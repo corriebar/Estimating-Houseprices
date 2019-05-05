@@ -416,12 +416,12 @@ quants %>%
 ---
 ## Pretty Visualizations
 ```{r, echo=FALSE, results='hide', message=F, warning=F}
-if (!require(rgeos))  {
-  install.packages("rgeos", type="source")
-  install.packages("rgdal", type="source")
-}
-if (!require(maptools)) install.packages("maptools")
-if (!require(mapproj)) install.packages("mapproj")
+# if (!require(rgeos))  {
+#   install.packages("rgeos", type="source")
+#   install.packages("rgdal", type="source")
+# }
+# if (!require(maptools)) install.packages("maptools")
+# if (!require(mapproj)) install.packages("mapproj")
 
 library(rgdal)           # for working with shapefiles
 # Shapefiles downloaded from here: 
