@@ -1,10 +1,11 @@
 ---
 title: "Estimating Berlin House Prices using rstanarm"
-author: "Corrie Bartelheimer <br /> <br /> Europace"
-date: "April 17, 2019"
+author: "<br>Corrie Bartelheimer <br /> <br /> <br>"
+date: "June 15, 2019"
 output: 
   xaringan::moon_reader:
     lib_dir: libs
+    css: ["xaringan-themer.css", "extra.css"]
     nature:
       highlightLines: true  
       highlightStype: github
@@ -13,6 +14,17 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, comment=NA)
+```
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+
+
+duo_accent(primary_color = "#1F4257", secondary_color = "#F97B64",
+  header_font_google = google_font("Josefin Sans"),
+  text_font_google   = google_font("Montserrat", "300", "300i"),
+  code_font_google   = google_font("Droid Mono")
+)
+write_extra_css(list(".highlight" = list(color = "#F97B64")))
 ```
 ```{r, echo=F, results='hide', message=F, warning=F}
 library(rstanarm)
@@ -65,7 +77,7 @@ bigger_text <-   theme(text=element_text(size=20),
 bigger_text_wo_axis <- theme(text=element_text(size=20))
 ```
 
-# What does Europace do?
+# The Data
 --
 ```{r, echo=FALSE}
 knitr::include_graphics("images/Europace.png")
@@ -94,11 +106,11 @@ knitr::include_graphics("images/Europace.png")
 
 --
 
-- Omit
+- One model per ZIP code
 
 --
 
-- One model per ZIP code
+- Omit
 
 --
 
@@ -153,6 +165,15 @@ mod_simple <- stan_glm( price.s ~  area.s   ,
 ---
 ## What about priors?
 
+Wikipedia:
+> A prior, [..] is the probability distribution that would express one's beliefs about this quantity before some evidence is taken into account.
+
+Or:
+
+**How much do we know about the problem before seeing the data?**
+---
+## What about priors?
+
 RStanArm uses by default **weakly regularized** priors
 --
 ```{r}
@@ -200,7 +221,7 @@ df.model %>%
                      limits = c(-2, 2)) +
   labs(y="Price (in 100,000s)", x="Area", title="Weakly regularizing prior (default)") +
   coord_cartesian(xlim=c(-2,2), clip = "off") +
-  theme(plot.margin = unit(c(1,20,1,1), "mm")) +
+  theme(plot.margin = unit(c(1,21,1,1), "mm")) +
   bigger_text +
   cowplot::draw_label(   x=2.14, y=0, label="0€", size=12,  col="#E41A1C" ) +
   cowplot::draw_label(   x=2.32, y=85, label="Most expensive\nflat in Berlin", size=12,  col="#377EB8") 
@@ -269,7 +290,11 @@ df.model %>%
 ```{r, eval=F}
 launch_shinystan(mod)
 ```
-
+---
+class: center, middle
+.gif[
+![](images/shinystan_small.gif)
+]
 
 ---
 
@@ -414,14 +439,8 @@ quants %>%
 ]
 
 ---
-## Pretty Visualizations
+## Visualizing the Results
 ```{r, echo=FALSE, results='hide', message=F, warning=F}
-# if (!require(rgeos))  {
-#   install.packages("rgeos", type="source")
-#   install.packages("rgdal", type="source")
-# }
-# if (!require(maptools)) install.packages("maptools")
-# if (!require(mapproj)) install.packages("mapproj")
 
 library(rgdal)           # for working with shapefiles
 # Shapefiles downloaded from here: 
@@ -637,15 +656,11 @@ df.model %>%
   
 --
 
-- Scaleability?
-
---
-
 - No information about similarity of neighborhoods included
 
 --
-
-  - Spatial modelling, e.g. ICAR model
+  
+  - Multiple Levels
   
 ```{r, eval=F, echo=F}
 df.m %>% 
@@ -708,15 +723,7 @@ mod %>%
   
 --
 
-  - A house of 104 sqm is on average 420,000€ inside the ring
-  
---
-
 - Affordable locations are mostly outside the ring
-
---
-
-  - The same house is about 20% cheaper outside the ring
 
 --
 

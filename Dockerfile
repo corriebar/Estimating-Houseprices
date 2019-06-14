@@ -16,4 +16,9 @@ RUN install2.r --error \
 	cowplot \
 	devtools
 
-RUN R -e "devtools::install_github('ropenscilabs/icon')"
+RUN installGithub.r ropenscilabs/icon \
+		gadenbuie/xaringanthemer \
+	&& rm -rf /tmp/downloaded_packages/
+
+#RUN R -e "devtools::install_github('ropenscilabs/icon')" \
+#	&& R -e "devtools::install_github('gadenbuie/xaringanthemer')"

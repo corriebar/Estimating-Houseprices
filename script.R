@@ -23,7 +23,7 @@ df <- df %>%
   filter(strasse != "Klosterstraße" &
            !str_detect(produktanbieterid, "MUSTER") &
            !(hausnummer==71 & plz=="10179") &
-           !(hausnummer == 77 & plz == "10247"))
+           !(hausnummer == 77 & plz == "10247")) 
 
 ########################################################
 #### filter out extreme outlier cases
