@@ -744,3 +744,5 @@ mod %>%
 
 
 - `r icon::fa("twitter")` [@corrieaar](https://twitter.com/corrieaar)
+
+- Blog: [https://www.samples-of-thoughts.com/](https://www.samples-of-thoughts.com/)
