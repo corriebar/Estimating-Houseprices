@@ -746,3 +746,10 @@ mod %>%
 - `r icon::fa("twitter")` [@corrieaar](https://twitter.com/corrieaar)
 
 - Blog: [https://www.samples-of-thoughts.com/](https://www.samples-of-thoughts.com/)
+
+- `r icon::fa("meetup")` If want to learn more, come to our meetup: [http://meetu.ps/c/41dg1/v14wk/f](http://meetu.ps/c/41dg1/v14wk/f)
+.center[
+```{r, echo=FALSE, out.height=130}
+knitr::include_graphics("images/meetup.jpeg", dpi=10)
+```
+]
